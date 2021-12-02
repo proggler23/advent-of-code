@@ -1,15 +1,11 @@
 fun main() {
     fun part1(input: List<String>): Int {
-        return input.map { it.toInt() }.zipWithNext().fold(0) { acc, (last, current) ->
-            acc + (if (current > last) 1 else 0)
-        }
+        return input.map { it.toInt() }.zipWithNext().count { (last, current) -> current > last }
     }
 
     fun part2(input: List<String>): Int {
         val sums = input.map { it.toInt() }.windowed(3).map { it.sum() }
-        return sums.zipWithNext().fold(0) { acc, (last, current) ->
-            acc + (if (current > last) 1 else 0)
-        }
+        return sums.zipWithNext().count { (last, current) -> current > last }
     }
 
     // test if implementation meets criteria from the description, like:
