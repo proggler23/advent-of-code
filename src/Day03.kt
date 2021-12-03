@@ -1,47 +1,20 @@
 fun main() {
     fun part1(input: List<String>): Int {
-        val bitCounts = input[0].toCharArray().map { 0 }.toMutableList()
-        input.map { BitSet(it) }.forEach {
-            it.bits.forEachIndexed { i, bit ->
-                if (bit) {
-                    bitCounts[i] = bitCounts.getOrElse(i) { 0 } + 1
-                }
-            }
-        }
+        val bitSets = input.map { BitSet(it) }
 
-        val deltaBits = bitCounts.map { count -> count > input.size / 2 }
-        val gammaBits = bitCounts.map { count -> count < input.size / 2 }
+        val delta = BitSet(bitSets[0].bits.indices.map { i -> bitSets.count { it.bits[i] } >= input.size / 2 })
+        val gamma = delta.invert()
 
-        return BitSet(deltaBits).toInt() * BitSet(gammaBits).toInt()
+        return delta.toInt() * gamma.toInt()
     }
 
     fun part2(input: List<String>): Int {
-        var bitSets = input.map { BitSet(it) }
-        var i = 0
-        while (bitSets.size > 1) {
-            val (set, unset) = bitSets.partition { it.bits[i] }
-            bitSets = if (set.size == unset.size) {
-                if (set[0].bits[i]) set else unset
-            } else {
-                if (set.size > unset.size) set else unset
-            }
-            i++
-        }
-        val oxygen = bitSets[0].toInt()
+        val bitSets = input.map { BitSet(it) }
 
-        bitSets = input.map { BitSet(it) }
-        i = 0
-        while (bitSets.size > 1) {
-            val (set, unset) = bitSets.partition { it.bits[i] }
-            bitSets = if (set.size == unset.size) {
-                if (set[0].bits[i]) unset else set
-            } else {
-                if (set.size < unset.size) set else unset
-            }
-            i++
-        }
-        val c02 = bitSets[0].toInt()
-        return oxygen * c02
+        val oxygen = bitSets[0].bits.indices.fold(bitSets) { result, bit -> result.takeByBit(bit, true) }[0]
+        val co2 = bitSets[0].bits.indices.fold(bitSets) { result, bit -> result.takeByBit(bit, false) }[0]
+
+        return oxygen.toInt() * co2.toInt()
     }
 
     // test if implementation meets criteria from the description, like:
@@ -54,8 +27,19 @@ fun main() {
     println(part2(input))
 }
 
+fun List<BitSet>.takeByBit(bit: Int, most: Boolean) =
+    if (size == 1) this else partition { it.bits[bit] }.let { (set, unset) ->
+        if (set.size == unset.size) {
+            if (set[0].bits[bit] == most) set else unset
+        } else {
+            if ((set.size > unset.size) == most) set else unset
+        }
+    }
+
 data class BitSet(val bits: List<Boolean>) {
     constructor(bits: String) : this(bits.toCharArray().map { it == '1' })
+
+    fun invert() = BitSet(bits.map { !it })
 
     fun toInt(): Int {
         return bits.mapIndexed { i, bit -> if (bit) 2.pow(bits.size - i - 1) else 0 }.sum()
