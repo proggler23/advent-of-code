@@ -11,8 +11,8 @@ fun main() {
     fun part2(input: List<String>): Int {
         val bitSets = input.map { BitSet(it) }
 
-        val oxygen = bitSets[0].bits.indices.fold(bitSets) { result, bit -> result.takeByBit(bit, true) }[0]
-        val co2 = bitSets[0].bits.indices.fold(bitSets) { result, bit -> result.takeByBit(bit, false) }[0]
+        val oxygen = bitSets.findBitSet(true)
+        val co2 = bitSets.findBitSet(false)
 
         return oxygen.toInt() * co2.toInt()
     }
@@ -27,14 +27,15 @@ fun main() {
     println(part2(input))
 }
 
-fun List<BitSet>.takeByBit(bit: Int, most: Boolean) =
-    if (size == 1) this else partition { it.bits[bit] }.let { (set, unset) ->
+fun List<BitSet>.findBitSet(most: Boolean) = this[0].bits.indices.fold(this) { result, bit ->
+    if (result.size == 1) result else result.partition { it.bits[bit] }.let { (set, unset) ->
         if (set.size == unset.size) {
             if (set[0].bits[bit] == most) set else unset
         } else {
             if ((set.size > unset.size) == most) set else unset
         }
     }
+}[0]
 
 data class BitSet(val bits: List<Boolean>) {
     constructor(bits: String) : this(bits.toCharArray().map { it == '1' })
