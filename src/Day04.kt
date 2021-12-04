@@ -39,25 +39,19 @@ fun main() {
     println(part2(input))
 }
 
-data class Board(val numbers: List<List<Int>>) {
-    private val checked = numbers.map { it.map { false }.toMutableList() }
+data class BoardField(val number: Int, var checked: Boolean = false)
 
+data class Board(val fields: List<List<BoardField>>) {
     fun check(number: Int) {
-        numbers.forEachIndexed { y, row ->
-            row.forEachIndexed { x, cell ->
-                if (number == cell) {
-                    checked[y][x] = true
-                }
-            }
-        }
+        fields.flatten().filter { it.number == number }.forEach { it.checked = true }
     }
 
     fun hasWon(): Boolean {
-        return checked.any { row -> row.all { cell -> cell } } || checked[0].indices.any { col -> checked.all { row -> row[col] } }
+        return fields.any { row -> row.all { cell -> cell.checked } } || fields[0].indices.any { col -> fields.all { row -> row[col].checked } }
     }
 
     fun sumOfUnchecked(): Int {
-        return numbers.mapIndexed { y, row -> row.filterIndexed { x, _ -> !checked[y][x] }.sum() }.sum()
+        return fields.flatten().filter { !it.checked }.sumOf { it.number }
     }
 
     companion object {
@@ -66,6 +60,6 @@ data class Board(val numbers: List<List<Int>>) {
             chunk.drop(1).map { line ->
                 line.trim().split(boardSplitRegex).map { it.toInt() }
             }
-        }.map { Board(it) }
+        }.map { numbers -> Board(numbers.map { row -> row.map { BoardField(number = it) } }) }
     }
 }
